@@ -1,6 +1,5 @@
 #include "argbuild.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -101,11 +100,10 @@ int get_args(arg_t* args, char** argv_to_fill){
 
     //If the last non-null character in the last argument
     //is a backslash, replace it with a space
-    if(it->next == NULL && it->arg[it->arg_len - 1] == '\\'){
-      it->arg[it->arg_len - 1] = ' ';
+    if(it->next == NULL && it->arg[it->arg_len - 2] == '\\'){
+      it->arg[it->arg_len - 2] = ' ';
     }
 
-    puts(argv_to_fill[numargs - 1]);
   }
 
   //The last elt in this array is a null pointer
