@@ -1,12 +1,37 @@
 #include "argbuild.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-void add_arg(char* argument, arg_t* args){
+void add_arg(char* argument, arg_t* args, int len){
+  if(args->end != NULL){
+    arg_elt_t* last = args->end;
+    int al = last->arg_len;
+    if((al > 1) && (last->arg[al - 2] == '\\')){
+      //If the last char of the last arg was backslash
+      //then the slash should be replaced with
+      //a space character and then the arg to add
+      //should be added onto the end.
+      last->arg[al - 2] = ' ';
+      //Subtract one to account for removing 1 null
+      //terminator after concatenating
+      int newlen = al + len - 1;
+      char* newarg = malloc(sizeof(char) * newlen);
+      strncpy(newarg, last->arg, al);
+      //Add the new argument onto the end
+      char* newarg_offset = newarg + al - 1;
+      strncpy(newarg_offset, argument, len);
+      free(last->arg);
+      last->arg = newarg;
+      return;
+    }
+  }
+
   arg_elt_t* toadd = malloc(sizeof(arg_elt_t));
   toadd->arg = argument;
   toadd->next = NULL;
+  toadd->arg_len = len;
   if(args->end != NULL){
     args->end->next = toadd;
   }
@@ -34,7 +59,7 @@ arg_t* build_args(char* cmd, unsigned int cmd_max_len){
 
       //Ignore multiple spaces between arguments
       if(cmd[i] == ' ' && cmd[i + 1] == ' '){
-	continue;
+	  continue;
       }
 
       char delineate = cmd[i];
@@ -54,7 +79,7 @@ arg_t* build_args(char* cmd, unsigned int cmd_max_len){
 	//terminator
 	cmd[i] = delineate;
 	//Now add the string to our linked list of arg elts
-	add_arg(arg_str, to_return);
+	add_arg(arg_str, to_return, new_str_siz);
 	//Make sub_start point to the next char after cmd[i], which is
 	//a space
 	sub_start = i + 1;	
@@ -65,21 +90,28 @@ arg_t* build_args(char* cmd, unsigned int cmd_max_len){
   return to_return;
 }
 
-char** get_args(arg_t* args, int* numargs){
+int get_args(arg_t* args, char** argv_to_fill){
   if(args->argc <= 0){
-    return NULL;
+    return -1;
   }
 
-  char** to_return = malloc(sizeof(char) * (args->argc + 1));
-  *numargs = 0;
+  int numargs = 0;
   for(arg_elt_t* it = args->first; it != NULL; it = it->next){
-    to_return[(*numargs)++] = it->arg;
+    argv_to_fill[numargs++] = it->arg;
+
+    //If the last non-null character in the last argument
+    //is a backslash, replace it with a space
+    if(it->next == NULL && it->arg[it->arg_len - 1] == '\\'){
+      it->arg[it->arg_len - 1] = ' ';
+    }
+
+    puts(argv_to_fill[numargs - 1]);
   }
 
   //The last elt in this array is a null pointer
-  to_return[args->argc] = '\0';
+  argv_to_fill[args->argc] = NULL;
 
-  return to_return;
+  return args->argc;
 }
 
 void free_args(arg_t* tofree){

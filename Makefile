@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -Werror -std=c99
-OBJS=argbuild.o vsh.o
+OBJS= err_handling.o trie/trie.o trie/intern.o builtin.o argbuild.o vsh.o
 BINARY=vsh
 
 .PHONY: clean all debug release
