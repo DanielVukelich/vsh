@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "envmgr.h"
 #include "vsh.h"
 #include "trie/trie.h"
 
@@ -17,7 +18,7 @@ typedef struct func_ary_elt{
   char* cmd_name;
 } func_ary_elt_t;
 
-int shell_exit(int argc, char** argv){
+int shell_exit(__attribute__((unused))int argc, __attribute__((unused))char** argv){
   running = 0;
   return 0;
 }
@@ -33,6 +34,8 @@ int change_directory(int argc, char** argv){
   last_cmd_errno = errno;
   if(toreturn){
     errstr = strerror(last_cmd_errno);
+  }else{
+      update_pwd();
   }
   return toreturn;
 }
